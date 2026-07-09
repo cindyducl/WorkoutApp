@@ -270,10 +270,10 @@ const MONTHS=['January','February','March','April','May','June','July','August',
 const EX_KEY='wt_exercises';
 const SECTIONS_KEY='wt_sections';
 const COLLAPSE_KEY='wt_collapsed';
-const DATE=todayKey();
+let DATE=todayKey();
 const PROG_PREFIX='wt_progress_';
 const META_PREFIX='wt_daymeta_';
-const PROG_KEY=PROG_PREFIX+DATE;
+let PROG_KEY=PROG_PREFIX+DATE;
 
 let sections=[];      // [{id,name}]
 let exercises=[];     // [{id,name,detail,sets,sectionId}]
@@ -814,6 +814,17 @@ function setView(v){
   else if(v==='history'){ selectedDate=DATE; renderHistory(); }
   else if(v==='timer'){ renderTimer(); }
 }
+function refreshDay(){
+  const nd=todayKey();
+  if(nd===DATE) return;              // still the same day, nothing to do
+  DATE=nd; PROG_KEY=PROG_PREFIX+DATE;
+  progress=getJSON(PROG_KEY)||{};    // new day starts with a clean slate
+  countsCache[DATE]=progress;
+  updateDayMeta();
+  const dl=document.getElementById('dateLine'); if(dl) dl.textContent=prettyToday();
+  if(view==='today') renderToday();
+  else if(view==='history'){ selectedDate=DATE; renderHistory(); }
+}
 function escapeHtml(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function escapeAttr(s){return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 
@@ -828,6 +839,10 @@ document.getElementById('exportCsv').onclick=exportCSV;
 document.getElementById('backupBtn').onclick=backupJSON;
 document.getElementById('restoreBtn').onclick=()=>document.getElementById('restoreFile').click();
 document.getElementById('restoreFile').onchange=function(){ handleRestoreFile(this); };
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') refreshDay(); });
+window.addEventListener('focus',refreshDay);
+window.addEventListener('pageshow',refreshDay);
+setInterval(refreshDay,60000);
 initTimer();
 load(); renderToday();
 </script>
