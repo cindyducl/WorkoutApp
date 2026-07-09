@@ -145,6 +145,30 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-r
 .exp-btn:hover{border-color:var(--accent);color:var(--accent-deep);}
 .exp-btn svg{width:15px;height:15px;stroke:currentColor;stroke-width:2.2;fill:none;}
 .hidden{display:none!important;}
+.seg-wrap{display:flex;justify-content:center;margin-bottom:24px;}
+.seg{display:inline-flex;background:#EAEEEC;border-radius:12px;padding:4px;gap:4px;}
+.seg button{padding:8px 18px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--muted);}
+.seg button.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(22,33,28,.08);}
+.tf-wrap{position:relative;width:260px;height:260px;margin:6px auto 24px;}
+.tf-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:56px;letter-spacing:.01em;color:var(--ink);}
+.tf-wrap.done .tf-time{color:var(--accent-deep);}
+#tfRing{transition:stroke-dashoffset .2s linear;}
+.timer-banner{text-align:center;color:var(--accent-deep);font-weight:600;font-size:14px;height:18px;margin:-12px 0 16px;opacity:0;transition:opacity .2s ease;}
+.timer-banner.show{opacity:1;}
+.timer-controls{display:flex;gap:12px;justify-content:center;margin-bottom:24px;}
+.tc-main{padding:14px 40px;border-radius:13px;background:var(--accent);color:#fff;font-weight:600;font-size:16px;box-shadow:var(--shadow);transition:filter .15s ease;}
+.tc-main:hover{filter:brightness(1.05);}
+.tc-main.pause{background:var(--ink);}
+.tc-reset{padding:14px 24px;border-radius:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:16px;box-shadow:var(--shadow);}
+.tc-reset:hover{border-color:var(--muted);}
+.presets{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.preset{padding:10px 16px;border-radius:11px;border:1px solid var(--line);background:var(--surface);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink);box-shadow:var(--shadow);transition:border-color .15s ease,background .15s ease,color .15s ease;}
+.preset:hover{border-color:var(--accent);color:var(--accent-deep);}
+.preset.active{border-color:var(--accent);background:var(--accent-wash);color:var(--accent-deep);}
+.preset.custom-chip{border-style:dashed;}
+.custom{display:flex;gap:10px;align-items:flex-end;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+.custom .field{flex:0 0 84px;}
+.custom .field input{text-align:center;}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;}}
 </style>
 </head>
@@ -158,6 +182,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-r
   <div class="tabs">
     <button class="tab active" id="tabToday">Today</button>
     <button class="tab" id="tabHistory">History</button>
+    <button class="tab" id="tabTimer">Timer</button>
   </div>
 
   <div id="todayView">
@@ -194,6 +219,38 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-r
     </div>
     <div class="day-detail" id="dayDetail"></div>
     <div class="hist-actions"><button class="exp-btn" id="exportCsv"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg> Export CSV</button><button class="exp-btn" id="backupBtn"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Back up</button><button class="exp-btn" id="restoreBtn"><svg viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg> Restore</button><input type="file" id="restoreFile" accept="application/json,.json" class="hidden"></div>
+  </div>
+
+  <div id="timerView" class="hidden">
+    <div class="seg-wrap"><div class="seg">
+      <button id="modeCountdown" class="active">Countdown</button>
+      <button id="modeStopwatch">Stopwatch</button>
+    </div></div>
+    <div class="tf-wrap" id="tfWrap">
+      <svg width="260" height="260" viewBox="0 0 260 260">
+        <circle cx="130" cy="130" r="116" fill="none" stroke="#DCF3E6" stroke-width="14"/>
+        <circle id="tfRing" cx="130" cy="130" r="116" fill="none" stroke="#17B26A" stroke-width="14" stroke-linecap="round" transform="rotate(-90 130 130)"/>
+      </svg>
+      <div class="tf-time" id="tfTime">1:00</div>
+    </div>
+    <div class="timer-banner" id="timerBanner">Time&#39;s up</div>
+    <div class="timer-controls">
+      <button class="tc-main" id="tcMain">Start</button>
+      <button class="tc-reset" id="tcReset">Reset</button>
+    </div>
+    <div class="presets" id="presetRow">
+      <button class="preset" data-ms="30000">0:30</button>
+      <button class="preset active" data-ms="60000">1:00</button>
+      <button class="preset" data-ms="120000">2:00</button>
+      <button class="preset" data-ms="180000">3:00</button>
+      <button class="preset" data-ms="300000">5:00</button>
+      <button class="preset custom-chip" id="customToggle">Custom</button>
+    </div>
+    <div class="custom hidden" id="customRow">
+      <div class="field"><label>Min</label><input id="cMin" type="number" min="0" max="99" inputmode="numeric" value="1"></div>
+      <div class="field"><label>Sec</label><input id="cSec" type="number" min="0" max="59" inputmode="numeric" value="0"></div>
+      <button class="btn btn-primary" id="cSet">Set</button>
+    </div>
   </div>
 </div>
 
@@ -683,13 +740,79 @@ function handleRestoreFile(input){
   };
   r.readAsText(f);
 }
+/* ---------- TIMER ---------- */
+const RING_C=2*Math.PI*116;
+let tMode='countdown', tRunning=false, tDone=false;
+let tTarget=60000, tRemaining=60000, tEndTime=0;
+let tElapsed=0, tStart=0, tInt=null, actx=null;
+function tfmt(ms,round){ const total=round==='ceil'?Math.ceil(ms/1000):Math.floor(ms/1000); const m=Math.floor(total/60),s=total%60; return m+':'+String(s).padStart(2,'0'); }
+function resumeAudio(){ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); if(actx.state==='suspended') actx.resume(); }catch(e){} }
+function beep(){ try{ resumeAudio(); if(!actx) return; const t0=actx.currentTime; for(let i=0;i<3;i++){ const o=actx.createOscillator(),g=actx.createGain(); o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(actx.destination); const s=t0+i*0.3; g.gain.setValueAtTime(0.0001,s); g.gain.exponentialRampToValueAtTime(0.35,s+0.02); g.gain.exponentialRampToValueAtTime(0.0001,s+0.25); o.start(s); o.stop(s+0.28); } }catch(e){} }
+function tickInterval(){ if(!tInt) tInt=setInterval(timerTick,200); }
+function clearTick(){ if(tInt){ clearInterval(tInt); tInt=null; } }
+function timerTick(){
+  if(tMode==='countdown' && tRunning){ tRemaining=tEndTime-Date.now(); if(tRemaining<=0){ tRemaining=0; finishCountdown(); return; } }
+  else if(tMode==='stopwatch' && tRunning){ tElapsed=Date.now()-tStart; }
+  renderTimer();
+}
+function finishCountdown(){ tRunning=false; clearTick(); tDone=true; beep(); if(navigator.vibrate){ try{ navigator.vibrate([200,100,200]); }catch(e){} } renderTimer(); }
+function startPauseTimer(){
+  if(tMode==='countdown'){
+    if(tRunning){ tRemaining=Math.max(0,tEndTime-Date.now()); tRunning=false; clearTick(); }
+    else { if(tRemaining<=0) tRemaining=tTarget; tDone=false; resumeAudio(); tEndTime=Date.now()+tRemaining; tRunning=true; tickInterval(); }
+  } else {
+    if(tRunning){ tElapsed=Date.now()-tStart; tRunning=false; clearTick(); }
+    else { resumeAudio(); tStart=Date.now()-tElapsed; tRunning=true; tickInterval(); }
+  }
+  renderTimer();
+}
+function resetTimer(){ tRunning=false; clearTick(); tDone=false; if(tMode==='countdown') tRemaining=tTarget; else tElapsed=0; renderTimer(); }
+function setTimerMode(m){ if(m===tMode) return; tRunning=false; clearTick(); tDone=false; tMode=m; renderTimer(); }
+function setPreset(ms){ tTarget=ms; tRemaining=ms; tDone=false; tRunning=false; clearTick(); renderTimer(); }
+function renderTimer(){
+  const wrap=document.getElementById('tfWrap'); if(!wrap) return;
+  let frac=0, text='0:00';
+  if(tMode==='countdown'){
+    if(tRunning) tRemaining=Math.max(0,tEndTime-Date.now());
+    text=tfmt(tRemaining,'ceil');
+    frac=tTarget?Math.max(0,Math.min(1,tRemaining/tTarget)):0;
+  } else {
+    if(tRunning) tElapsed=Date.now()-tStart;
+    text=tfmt(tElapsed,'floor');
+    frac=(tElapsed%60000)/60000;
+  }
+  document.getElementById('tfTime').textContent=text;
+  document.getElementById('tfRing').style.strokeDashoffset=(RING_C*(1-frac)).toFixed(2);
+  wrap.classList.toggle('done', tMode==='countdown' && tDone);
+  document.getElementById('timerBanner').classList.toggle('show', tMode==='countdown' && tDone);
+  const main=document.getElementById('tcMain');
+  main.textContent=tRunning?'Pause':((tMode==='countdown'&&tDone)?'Start again':'Start');
+  main.classList.toggle('pause', tRunning);
+  document.getElementById('presetRow').style.display=(tMode==='countdown')?'flex':'none';
+  if(tMode!=='countdown') document.getElementById('customRow').classList.add('hidden');
+  document.querySelectorAll('#presetRow .preset[data-ms]').forEach(b=>{ b.classList.toggle('active', parseInt(b.getAttribute('data-ms'),10)===tTarget); });
+}
+function initTimer(){
+  document.getElementById('tfRing').setAttribute('stroke-dasharray', RING_C.toFixed(2));
+  document.getElementById('tcMain').onclick=startPauseTimer;
+  document.getElementById('tcReset').onclick=resetTimer;
+  document.getElementById('modeCountdown').onclick=()=>{ setTimerMode('countdown'); document.getElementById('modeCountdown').classList.add('active'); document.getElementById('modeStopwatch').classList.remove('active'); };
+  document.getElementById('modeStopwatch').onclick=()=>{ setTimerMode('stopwatch'); document.getElementById('modeStopwatch').classList.add('active'); document.getElementById('modeCountdown').classList.remove('active'); };
+  document.querySelectorAll('#presetRow .preset[data-ms]').forEach(b=>{ b.onclick=()=>{ setPreset(parseInt(b.getAttribute('data-ms'),10)); document.getElementById('customRow').classList.add('hidden'); }; });
+  document.getElementById('customToggle').onclick=()=>{ document.getElementById('customRow').classList.toggle('hidden'); };
+  document.getElementById('cSet').onclick=()=>{ let mn=parseInt(document.getElementById('cMin').value,10)||0, sc=parseInt(document.getElementById('cSec').value,10)||0; if(sc>59)sc=59; if(sc<0)sc=0; if(mn<0)mn=0; const ms=(mn*60+sc)*1000; if(ms<=0) return; setPreset(ms); };
+  renderTimer();
+}
+
 function setView(v){
   view=v;
-  document.getElementById('tabToday').classList.toggle('active',v==='today');
-  document.getElementById('tabHistory').classList.toggle('active',v==='history');
-  document.getElementById('todayView').classList.toggle('hidden',v!=='today');
-  document.getElementById('historyView').classList.toggle('hidden',v!=='history');
-  if(v==='today') renderToday(); else { selectedDate=DATE; renderHistory(); }
+  const tabs={today:'tabToday',history:'tabHistory',timer:'tabTimer'};
+  const views={today:'todayView',history:'historyView',timer:'timerView'};
+  Object.keys(tabs).forEach(k=>document.getElementById(tabs[k]).classList.toggle('active',k===v));
+  Object.keys(views).forEach(k=>document.getElementById(views[k]).classList.toggle('hidden',k!==v));
+  if(v==='today') renderToday();
+  else if(v==='history'){ selectedDate=DATE; renderHistory(); }
+  else if(v==='timer'){ renderTimer(); }
 }
 function escapeHtml(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function escapeAttr(s){return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
@@ -697,6 +820,7 @@ function escapeAttr(s){return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'
 document.getElementById('resetBtn').onclick=resetDay;
 document.getElementById('tabToday').onclick=()=>setView('today');
 document.getElementById('tabHistory').onclick=()=>setView('history');
+document.getElementById('tabTimer').onclick=()=>setView('timer');
 document.getElementById('prevM').onclick=()=>{ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderHistory(); };
 document.getElementById('nextM').onclick=()=>{ if(calYear===now.getFullYear()&&calMonth===now.getMonth()) return; calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderHistory(); };
 
@@ -704,6 +828,7 @@ document.getElementById('exportCsv').onclick=exportCSV;
 document.getElementById('backupBtn').onclick=backupJSON;
 document.getElementById('restoreBtn').onclick=()=>document.getElementById('restoreFile').click();
 document.getElementById('restoreFile').onchange=function(){ handleRestoreFile(this); };
+initTimer();
 load(); renderToday();
 </script>
 </body>
